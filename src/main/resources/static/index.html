@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Admin Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f1f3f7;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar {
+            width: 230px;
+            height: 100vh;
+            background: #111827;
+            position: fixed;
+            padding: 20px;
+            color: white;
+        }
+
+        .sidebar h4 {
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 10px;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar a:hover {
+            background-color: #1f2937;
+            color: white;
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+        .topbar {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+
+        .card-stat {
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+        }
+
+        .bg-blue { background: #2563eb; }
+        .bg-green { background: #16a34a; }
+        .bg-purple { background: #7c3aed; }
+
+        .main-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.05);
+        }
+
+        .table thead {
+            background-color: #111827;
+            color: white;
+        }
+
+        .btn-modern {
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h4>Admin Panel</h4>
+    <a href="#">Dashboard</a>
+    <a href="#">Students</a>
+    <a href="#">Settings</a>
+</div>
+
+<div class="content">
+
+    <div class="topbar d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Student Management</h5>
+        <button class="btn btn-primary btn-modern" onclick="openAddModal()">+ Add Student</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card-stat bg-blue">
+                <h6>Total Students</h6>
+                <h3 id="totalCount">0</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-stat bg-green">
+                <h6>Active</h6>
+                <h3>100%</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-stat bg-purple">
+                <h6>Classes</h6>
+                <h3>---</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="main-card">
+        <div class="mb-3">
+            <input type="text" id="keyword" class="form-control"
+                placeholder="Search student by name...">
+        </div>
+
+        <table class="table table-hover text-center">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Class</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="studentTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="studentModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 id="modalTitle">Student Info</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="studentId">
+                <input type="text" id="name" class="form-control mb-2" placeholder="Full Name">
+                <input type="number" id="age" class="form-control mb-2" placeholder="Age">
+                <input type="text" id="className" class="form-control mb-2" placeholder="Class">
+                <input type="email" id="email" class="form-control mb-2" placeholder="Email">
+                <input type="text" id="phoneNumber" class="form-control mb-2" placeholder="Phone">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary btn-modern" onclick="saveStudent()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const API_URL = "/api/students";
+let modal;
+
+document.addEventListener("DOMContentLoaded", () => {
+    modal = new bootstrap.Modal(document.getElementById("studentModal"));
+    loadStudents();
+});
+
+async function loadStudents() {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    document.getElementById("totalCount").innerText = data.length;
+    renderTable(data);
+}
+
+function renderTable(list) {
+    let rows = "";
+    list.forEach(s => {
+        rows += `
+            <tr>
+                <td>${s.name}</td>
+                <td>${s.age}</td>
+                <td>${s.className}</td>
+                <td>${s.email}</td>
+                <td>${s.phoneNumber}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning btn-modern" onclick="editStudent('${s.id}')">Edit</button>
+                    <button class="btn btn-sm btn-danger btn-modern" onclick="deleteStudent('${s.id}')">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+    document.getElementById("studentTable").innerHTML = rows;
+}
+
+function openAddModal() {
+    document.querySelectorAll(".modal-body input").forEach(i => i.value = "");
+    document.getElementById("modalTitle").innerText = "Add Student";
+    modal.show();
+}
+
+async function deleteStudent(id) {
+    if(confirm("Delete this student?")){
+        await fetch(`${API_URL}/delete/${id}`, {method:"POST"});
+        loadStudents();
+    }
+}
+</script>
+
+</body>
+</html>

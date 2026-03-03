@@ -1,0 +1,67 @@
+package com.vietanh.backend.controller;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.vietanh.backend.entity.Studententity;
+import com.vietanh.backend.service.StudentService;
+
+@RestController
+@RequestMapping("/api/students")
+@CrossOrigin(origins = "http://localhost:5173")
+public class StudentController {
+
+    private final StudentService service;
+
+    public StudentController(StudentService service) {
+        this.service = service;
+    }
+
+    // 1. GET /api/students
+    @GetMapping
+    public List<Studententity> getAllStudents() {
+        return service.getAllStudents();
+    }
+
+    // 2. GET /api/students/{id}
+    @GetMapping("/{id}")
+    public Studententity getStudentById(@PathVariable UUID id) {
+        return service.getStudentById(id);
+    }
+
+    // 3. POST /api/students
+    @PostMapping
+    public Studententity createStudent(@RequestBody Studententity student) {
+        return service.createStudent(student);
+    }
+
+    // 4. PUT /api/students/{id}
+    @PostMapping("/update/{id}")
+    public Studententity updateStudent(
+            @PathVariable UUID id,
+            @RequestBody Studententity student) {
+        return service.updateStudent(id, student);
+    }
+
+    // 5. DELETE /api/students/{id}
+    @PostMapping("/delete/{id}")
+    public String deleteStudent(@PathVariable UUID id) {
+        service.deleteStudent(id);
+        return "Deleted student with id " + id;
+    }
+
+    // 6.GET SEARCH_BY_NAME
+    @GetMapping("/search")
+    public List<Studententity> searchStudentByName(@RequestParam String name) {
+        return service.getStudentsByName(name);
+    }
+}
